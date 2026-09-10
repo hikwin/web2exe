@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片搜索</title>
+    <link rel="stylesheet" href="css/tailwind.css">
+    <script src="js/neutralino.js"></script>
+    <script src="js/main.js" defer></script>
+</head>
+<body class="bg-gradient-to-br from-sky-50 to-indigo-100 min-h-screen p-4 md:p-8 font-sans">
+    <div class="max-w-3xl mx-auto">
+        <!-- 卡片容器 -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <!-- 顶部装饰条 -->
+            <div class="h-2 bg-gradient-to-r from-primary-400 to-indigo-500"></div>
+            
+            <!-- 内容区域 -->
+            <div class="p-6 md:p-8">
+                <!-- 标题 -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">图片搜索</h1>
+                    <p class="text-gray-500 text-sm md:text-base">上传、粘贴图片或输入图片链接，一键搜索多个引擎</p>
+                </div>
+                
+                <!-- 图片链接输入区域 -->
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="imageUrlInput" class="block text-sm font-medium text-gray-700">图片链接或粘贴图片</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-grow">
+                                <input type="text" id="imageUrlInput" placeholder="https://example.com/image.jpg 或直接 Ctrl+V粘贴图片" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none"
+                                    onkeydown="if(event.keyCode === 13) generateButtons()">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <button onclick="pasteFromClipboard()" class="px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-md flex items-center justify-center min-w-[80px]" title="读取剪贴板中的图片或链接">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                粘贴
+                            </button>
+                            <button onclick="clearImageUrl()" class="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-300 shadow-md flex items-center justify-center min-w-[80px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                清空
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 图床选择与配置区域 -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label for="imageHostSelect" class="block text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                上传图床
+                            </label>
+                            <span id="hostStatusBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 font-medium">免登录 · 自动记忆</span>
+                        </div>
+                        <div class="relative">
+                            <select id="imageHostSelect" onchange="onImageHostChange()" 
+                                class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none appearance-none cursor-pointer pr-10 text-gray-800 text-sm font-medium shadow-sm hover:border-gray-400">
+                                <option value="auto">⚡ 智能多源容灾 (推荐 · 优先高速节点，失败自动切换)</option>
+                                <option value="picui">🌸 皮卡图床 (国内多线 CDN · 免登录极速直链)</option>
+                                <option value="tumy">🌾 图麦图床 (国内稳定节点 · 免登录长期直链)</option>
+                                <option value="sxcu">🚀 SXCU 图床 (国际高速直链 · 免登录)</option>
+                                <option value="imgur">🌐 Imgur (全球知名图床 · 搜图兼容性极佳)</option>
+                                <option value="custom">🛠️ 自定义 Worker / 自建图床 (支持 CF Worker/Telegraph/Lsky)</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- 自定义 Worker / 图床配置框 (仅在选择自定义时显示) -->
+                        <div id="customWorkerContainer" class="hidden pt-1 space-y-2 transition-all duration-300">
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <label for="workerUrlInput">自定义 Worker / API 地址：</label>
+                                <span class="text-gray-400">支持 CF Worker、Telegraph-Image、LskyPro 等</span>
+                            </div>
+                            <input type="text" id="workerUrlInput" placeholder="https://your-worker.workers.dev" 
+                                class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none"
+                                oninput="saveCustomWorkerUrl()">
+                        </div>
+                    </div>
+                    
+                    <!-- 文件上传 -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">上传图片</label>
+                        <label for="fileInput" class="flex flex-col items-center justify-center w-full h-32 px-4 py-6 border-2 border-dashed border-primary-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-primary-50 transition-colors duration-300">
+                            <div id="uploadPreviewContainer" class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="text-sm text-gray-600">点击或拖放图片到此处上传</p>
+                                <p class="text-xs text-gray-500 mt-1">支持 JPG, PNG, GIF 等格式</p>
+                            </div>
+                            <input type="file" id="fileInput" accept="image/*" onchange="uploadImage(this)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 多选模式切换开关 -->
+                <div class="flex justify-end items-center mt-6 mb-2">
+                    <span class="text-sm text-gray-600 mr-2">多选模式</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="multiSelectToggle" class="sr-only peer" onchange="toggleMultiSelectMode()">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                    </label>
+                </div>
+                
+                <!-- 搜索引擎按钮容器 -->
+                <div id="buttonsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2 mb-6"></div>
+                
+                <!-- 多选搜索按钮容器 -->
+                <div id="multiSearchButtonContainer" class="text-center mt-4 mb-4 hidden">
+                    <button id="multiSearchButton" onclick="openSelectedEngines()" class="inline-flex items-center px-5 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-300 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        打开选中的搜索引擎
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <div class="text-center text-gray-500 text-sm mt-6">
+            <p>© 2025 多合一图片搜索工具 | 基于 <a href="https://www.bilibili.com/video/BV1L1GBzJEts">4evergr8</a> 修改</p>
+        </div>
+    </div>
+</body>
+</html>
