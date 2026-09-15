@@ -13,6 +13,7 @@ pnpm-debug.log*
 # ==========================================
 dist/
 build/
+web2exe正式版/
 *.exe
 resources.neu
 
